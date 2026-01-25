@@ -144,7 +144,10 @@ async def _search_with_ripgrep(
     )
     stdout, _ = await proc.communicate()
     matches: list[FindMatch] = []
-    base_path_prefix = base_path.rstrip("/") + "/"
+    # Resolve symlinks for comparison - ripgrep returns resolved paths
+    # (important on macOS where /tmp -> /private/var/folders/...)
+    base_path_resolved = str(Path(base_path).resolve())
+    base_path_prefix = base_path_resolved.rstrip("/") + "/"
     for line in stdout.decode("utf-8", errors="replace").splitlines():
         if not line.strip():
             continue
@@ -219,7 +222,10 @@ async def _find_files_with_ripgrep(query: str, base_path: str, max_results: int 
     )
     stdout, _ = await proc.communicate()
     results: list[str] = []
-    base_path_prefix = base_path.rstrip("/") + "/"
+    # Resolve symlinks for comparison - ripgrep returns resolved paths
+    # (important on macOS where /tmp -> /private/var/folders/...)
+    base_path_resolved = str(Path(base_path).resolve())
+    base_path_prefix = base_path_resolved.rstrip("/") + "/"
     for line in stdout.decode("utf-8", errors="replace").splitlines():
         if not line.strip():
             continue
